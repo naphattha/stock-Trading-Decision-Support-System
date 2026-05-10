@@ -1,0 +1,25 @@
+name: trading_dss
+description: Stock Trading Decision Support System v3
+publish_to: 'none'
+version: 3.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.1
+  intl: ^0.19.0
+  fl_chart: ^0.68.0
+  google_fonts: ^6.2.1
+  web_socket_channel: ^2.4.0
+  file_picker: ^8.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
