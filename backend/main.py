@@ -5,7 +5,7 @@ New: Universe · Checklist · Portfolio · WebSocket · Redis Cache · PostgreSQ
 """
 from __future__ import annotations
 
-import csv, io, json
+import csv, io, json, os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import List, Optional
@@ -40,7 +40,12 @@ from signal_engine import calculate_signals
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_tables()
-    sched.start(_auto_refresh)
+    # Scheduler is disabled when GitHub Actions handles alerts (DISABLE_SCHEDULER=true)
+    if os.getenv("DISABLE_SCHEDULER", "false").lower() != "true":
+        sched.start(_auto_refresh)
+        print("[app] APScheduler started (built-in mode)")
+    else:
+        print("[app] APScheduler disabled — GitHub Actions handles alerts")
     yield
     sched.stop()
 

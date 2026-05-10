@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: trading-dss-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false          # set manually in Render dashboard
+      - key: REDIS_URL
+        sync: false
+      - key: DISCORD_WEBHOOK_URL
+        sync: false
+      - key: SIGNAL_REFRESH_INTERVAL
+        value: "30"
+      - key: DISABLE_SCHEDULER
+        value: "true"        # GitHub Actions handles alerts instead

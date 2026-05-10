@@ -2,9 +2,20 @@ import 'package:flutter/material.dart';
 
 class AppConfig {
   AppConfig._();
-  static const String baseUrl = 'http://localhost:8000';
-  static const String wsUrl   = 'ws://localhost:8000/ws/signals';
 
+  // ── API URLs (injected at build time via --dart-define) ───────────────────
+  // Local dev:    flutter run -d chrome
+  // Production:   flutter build web --dart-define=API_URL=https://your-app.onrender.com
+  static const String baseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://localhost:8000',
+  );
+  static const String wsUrl = String.fromEnvironment(
+    'WS_URL',
+    defaultValue: 'ws://localhost:8000/ws/signals',
+  );
+
+  // ── Palette ────────────────────────────────────────────────────────────────
   static const Color bgDeep        = Color(0xFF080C18);
   static const Color bgCard        = Color(0xFF111827);
   static const Color bgCardAlt     = Color(0xFF1A2236);
@@ -19,6 +30,7 @@ class AppConfig {
   static const Color textSecondary = Color(0xFF7A8599);
   static const Color border        = Color(0xFF1E2D45);
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
   static Color signalColor(String? s) {
     switch (s) { case 'BUY': return buy; case 'SELL': return sell; default: return hold; }
   }

@@ -183,6 +183,7 @@ class _StockDetailScreenState extends State<StockDetailScreen>
           labelColor: AppConfig.accent,
           unselectedLabelColor: AppConfig.textSecondary,
           isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: const [
             Tab(text: 'Indicators'),
             Tab(text: 'Price Chart'),
@@ -222,16 +223,17 @@ class _StockDetailScreenState extends State<StockDetailScreen>
       padding: const EdgeInsets.all(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _card(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Expanded(child: _statCol('Price',
-                '\$${s.currentPrice?.toStringAsFixed(2) ?? '—'}',
-                AppConfig.textPrimary)),
-            Expanded(child: _statCol('Signal', s.overallSignal ?? '—',
-                AppConfig.signalColor(s.overallSignal))),
-            Expanded(child: _statCol('Confidence',
-                '${s.confidence?.toStringAsFixed(0) ?? '—'}%',
-                AppConfig.accent)),
-          ]),
+          LayoutBuilder(builder: (ctx, cons) {
+            final narrow = cons.maxWidth < 340;
+            final widgets = [
+              _statCol('Price', '\$${s.currentPrice?.toStringAsFixed(2) ?? '—'}', AppConfig.textPrimary),
+              _statCol('Signal', s.overallSignal ?? '—', AppConfig.signalColor(s.overallSignal)),
+              _statCol('Confidence', '${s.confidence?.toStringAsFixed(0) ?? '—'}%', AppConfig.accent),
+            ];
+            return narrow
+                ? Wrap(spacing: 16, runSpacing: 10, children: widgets)
+                : Row(children: widgets.map((w) => Expanded(child: w)).toList());
+          }),
           const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
@@ -355,12 +357,10 @@ class _StockDetailScreenState extends State<StockDetailScreen>
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          _statCol('Close', '\$${last.toStringAsFixed(2)}', lc),
-          const SizedBox(width: 24),
-          _statCol('Change', '${isUp ? '+' : ''}${chg.toStringAsFixed(2)}%', lc),
-          const SizedBox(width: 24),
-          _statCol('Period', '3 Months', AppConfig.textSecondary),
+        Wrap(spacing: 20, runSpacing: 8, children: [
+          _statCol('Close',  '\$${last.toStringAsFixed(2)}',                      lc),
+          _statCol('Change', '${isUp ? '+' : ''}${chg.toStringAsFixed(2)}%',      lc),
+          _statCol('Period', '3 Months',                    AppConfig.textSecondary),
         ]),
         const SizedBox(height: 20),
         Expanded(

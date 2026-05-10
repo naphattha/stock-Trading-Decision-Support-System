@@ -1,0 +1,54 @@
+name: Signal Alert (Discord)
+
+on:
+  # ── US market hours: Mon–Fri 9:30 AM–4:00 PM ET ──────────────────────────
+  # 9:30 AM ET  = 13:30 UTC  (EDT, summer)  / 14:30 UTC (EST, winter)
+  # 4:00 PM ET  = 20:00 UTC  (EDT)          / 21:00 UTC (EST)
+  # Running every 30 min from 13:00–21:00 UTC covers both seasons safely.
+  schedule:
+    - cron: '0,30 13-21 * * 1-5'
+
+  # ── Allow manual trigger from GitHub Actions tab ──────────────────────────
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Print extra debug info'
+        required: false
+        default: 'false'
+
+jobs:
+  check-signals:
+    name: Check signals & send Discord alerts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ── 1. Checkout code ──────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Python setup ───────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      # ── 3. Install dependencies ───────────────────────────────────────────
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      # ── 4. Run signal check ───────────────────────────────────────────────
+      - name: Run signal check
+        env:
+          DATABASE_URL:         ${{ secrets.DATABASE_URL }}
+          DISCORD_WEBHOOK_URL:  ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python scripts/check_signals.py
+
+      # ── 5. (Optional) Print summary on failure ────────────────────────────
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Signal check failed at $(date -u)"
+          echo "Check the logs above for details."
