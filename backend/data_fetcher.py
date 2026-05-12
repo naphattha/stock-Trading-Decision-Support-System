@@ -154,3 +154,7 @@ def get_multiple_prices(tickers: list[str]) -> dict[str, float | None]:
     except Exception as exc:
         logger.error("Batch price fetch failed: %s", exc)
         return {t: None for t in tickers}
+        
+# Aliases for backward compatibility with main.py
+fetch_stock_data = get_stock_data
+fetch_stock_info = get_current_price
