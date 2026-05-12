@@ -380,22 +380,27 @@ def delete_checklist(id: int, db: Session = Depends(get_db)):
 # ══════════════════════════════════════════════════════════════════════════════
 @app.get("/portfolio/holdings")
 def get_portfolio_holdings(db: Session = Depends(get_db)):
-    # ดึงจาก watchlist + signal ล่าสุดของแต่ละ ticker
-    watchlist = db.query(Watchlist).all()
+    positions = db.query(Position).all()
+
     holdings = []
-    for item in watchlist:
+
+    for pos in positions:
         latest = (
             db.query(Signal)
-            .filter(Signal.ticker == item.ticker)
+            .filter(Signal.ticker == pos.ticker)
             .order_by(Signal.timestamp.desc())
             .first()
         )
+
         holdings.append({
-            "ticker":     item.ticker,
-            "signal":     latest.overall_signal if latest else "HOLD",
+            "ticker": pos.ticker,
+            "shares": pos.shares,
+            "cost_basis": pos.cost_basis_per_share,
+            "signal": latest.overall_signal if latest else "HOLD",
             "confidence": latest.confidence if latest else 0,
-            "price":      latest.price if latest else None,
+            "price": latest.price if latest else 0,
         })
+
     return holdings
 
 @app.get("/portfolio/recommendations", response_model=List[RecommendationResponse], tags=["Portfolio"])
