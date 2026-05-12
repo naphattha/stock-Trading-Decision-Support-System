@@ -13,7 +13,9 @@ alembic==1.13.1
 redis==5.0.1
 
 # Data
-yfinance==0.2.37
+yfinance==0.2.54
+twelvedata>=1.2.0
+curl_cffi==0.7.4
 pandas==2.2.0
 numpy==1.26.4
 
