@@ -154,7 +154,26 @@ def get_multiple_prices(tickers: list[str]) -> dict[str, float | None]:
     except Exception as exc:
         logger.error("Batch price fetch failed: %s", exc)
         return {t: None for t in tickers}
-        
+
+def fetch_stock_info(ticker: str) -> dict:
+    """
+    Return basic stock metadata.
+    """
+
+    try:
+        quote = _td.quote(symbol=ticker).as_json()
+
+        return {
+            "name": quote.get("name", ticker),
+            "sector": quote.get("exchange", "Unknown"),
+        }
+
+    except Exception as exc:
+        logger.error("Failed to fetch stock info for '%s': %s", ticker, exc)
+
+        return {
+            "name": ticker,
+            "sector": "Unknown",
+        }
 # Aliases for backward compatibility with main.py
 fetch_stock_data = get_stock_data
-fetch_stock_info = get_current_price

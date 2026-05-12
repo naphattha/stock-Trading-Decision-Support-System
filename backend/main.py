@@ -441,7 +441,7 @@ def portfolio_summary(db: Session = Depends(get_db)):
 # ══════════════════════════════════════════════════════════════════════════════
 @app.get("/price/{ticker}")
 def get_price(ticker: str, period: str = "3mo"):
-    df = get_stock_data(ticker, period=period)
+    df = fetch_stock_data(ticker, period=period)
     if df is None or df.empty:
         raise HTTPException(status_code=404, detail=f"No data for {ticker}")
     
