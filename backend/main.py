@@ -50,8 +50,16 @@ async def lifespan(app: FastAPI):
     sched.stop()
 
 app = FastAPI(title="Stock Trading DSS", version="3.0.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["*"], allow_headers=["*"])
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://stock-trading-decision-support-syst.vercel.app",
+        "http://localhost:5000",  # local dev
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ── WebSocket ─────────────────────────────────────────────────────────────────
 @app.websocket("/ws/signals")
@@ -370,20 +378,25 @@ def delete_checklist(id: int, db: Session = Depends(get_db)):
 # ══════════════════════════════════════════════════════════════════════════════
 # PORTFOLIO
 # ══════════════════════════════════════════════════════════════════════════════
-@app.get("/portfolio/holdings", response_model=PortfolioSnapshotResponse, tags=["Portfolio"])
-def portfolio_holdings(db: Session = Depends(get_db)):
-    cached = cache.get_portfolio()
-    if cached:
-        return cached
-    snap = get_portfolio_snapshot(db)
-    out = {
-        "holdings": [h.__dict__ for h in snap.holdings],
-        "total_value": snap.total_value, "total_cost": snap.total_cost,
-        "total_pnl": snap.total_pnl, "total_pnl_pct": snap.total_pnl_pct,
-        "equal_weight_pct": snap.equal_weight_pct,
-    }
-    cache.set_portfolio([out])
-    return out
+@app.get("/portfolio/holdings")
+def get_portfolio_holdings(db: Session = Depends(get_db)):
+    # ดึงจาก watchlist + signal ล่าสุดของแต่ละ ticker
+    watchlist = db.query(Watchlist).all()
+    holdings = []
+    for item in watchlist:
+        latest = (
+            db.query(Signal)
+            .filter(Signal.ticker == item.ticker)
+            .order_by(Signal.timestamp.desc())
+            .first()
+        )
+        holdings.append({
+            "ticker":     item.ticker,
+            "signal":     latest.overall_signal if latest else "HOLD",
+            "confidence": latest.confidence if latest else 0,
+            "price":      latest.price if latest else None,
+        })
+    return holdings
 
 @app.get("/portfolio/recommendations", response_model=List[RecommendationResponse], tags=["Portfolio"])
 def portfolio_recommendations(db: Session = Depends(get_db)):
@@ -426,15 +439,25 @@ def portfolio_summary(db: Session = Depends(get_db)):
 # ══════════════════════════════════════════════════════════════════════════════
 # PRICE / FUNDAMENTAL / REGIME / RISK / ALERTS
 # ══════════════════════════════════════════════════════════════════════════════
-@app.get("/price/{ticker}", tags=["Price"])
-def price_data(ticker: str, period: str = "3mo"):
-    df = fetch_stock_data(ticker.upper(), period)
-    if df is None: raise HTTPException(404)
-    return {"ticker": ticker.upper(), "data": [
-        {"date": d.strftime("%Y-%m-%d"), "open": round(float(r["Open"]),2),
-         "high": round(float(r["High"]),2), "low": round(float(r["Low"]),2),
-         "close": round(float(r["Close"]),2), "volume": int(r["Volume"])}
-        for d, r in df.iterrows()]}
+@app.get("/price/{ticker}")
+def get_price(ticker: str, period: str = "3mo"):
+    df = get_stock_data(ticker, period=period)
+    if df is None or df.empty:
+        raise HTTPException(status_code=404, detail=f"No data for {ticker}")
+    
+    # คืน OHLCV เป็น list of dict สำหรับ chart
+    df = df.sort_index()  # เรียงเก่า→ใหม่
+    records = []
+    for dt, row in df.iterrows():
+        records.append({
+            "datetime": str(dt),
+            "open":   float(row["Open"]),
+            "high":   float(row["High"]),
+            "low":    float(row["Low"]),
+            "close":  float(row["Close"]),
+            "volume": int(row["Volume"]),
+        })
+    return {"ticker": ticker, "period": period, "data": records}
 
 @app.get("/fundamental/{ticker}", response_model=FundamentalResponse, tags=["Fundamental"])
 def get_fundamental(ticker: str, refresh: bool = False, db: Session = Depends(get_db)):
