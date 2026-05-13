@@ -393,12 +393,15 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
         )
 
         holdings.append({
+            "id": pos.id,
             "ticker": pos.ticker,
-            "shares": pos.shares,
-            "cost_basis": pos.cost_basis_per_share,
+            "shares": float(pos.shares),
+            "cost_basis_per_share": float(pos.cost_basis_per_share),
+
             "signal": latest.overall_signal if latest else "HOLD",
-            "confidence": latest.confidence if latest else 0,
-            "price": latest.price if latest else 0,
+            "confidence": float(latest.confidence) if latest and latest.confidence else 0,
+
+            "price": float(latest.price) if latest and latest.price else 0,
         })
 
     return holdings
