@@ -292,7 +292,12 @@ async def run_scan(bg: BackgroundTasks, db: Session = Depends(get_db)):
     if cached: return cached
     pool = [r.ticker for r in db.query(UniversePool).all()]
     if not pool: raise HTTPException(400, "Universe pool is empty. Upload a CSV first.")
-    results = scan_pool(pool)
+    
+    # Limit scan to first 50 tickers to prevent timeout on free tier
+    MAX_SCAN_TICKERS = 50
+    pool_to_scan = pool[:MAX_SCAN_TICKERS]
+    
+    results = scan_pool(pool_to_scan)
     # auto-add to universe
     added = 0
     for r in results:
@@ -383,6 +388,8 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
     positions = db.query(Position).all()
 
     holdings = []
+    total_value = 0.0
+    total_cost = 0.0
 
     for pos in positions:
         latest = (
@@ -392,19 +399,52 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
             .first()
         )
 
+        current_price = float(latest.price) if latest and latest.price else 0
+        shares = float(pos.shares)
+        cost_basis_per_share = float(pos.cost_basis_per_share)
+
+        market_value = shares * current_price
+        cost_basis_total = shares * cost_basis_per_share
+        unrealized_pnl = market_value - cost_basis_total
+        pnl_pct = (unrealized_pnl / cost_basis_total * 100) if cost_basis_total > 0 else 0
+
         holdings.append({
-            "id": pos.id,
             "ticker": pos.ticker,
-            "shares": float(pos.shares),
-            "cost_basis_per_share": float(pos.cost_basis_per_share),
-
-            "signal": latest.overall_signal if latest else "HOLD",
-            "confidence": float(latest.confidence) if latest and latest.confidence else 0,
-
-            "price": float(latest.price) if latest and latest.price else 0,
+            "shares": shares,
+            "cost_basis_per_share": cost_basis_per_share,
+            "current_price": current_price,
+            "market_value": market_value,
+            "cost_basis_total": cost_basis_total,
+            "unrealized_pnl": unrealized_pnl,
+            "pnl_pct": pnl_pct,
+            "actual_weight": 0.0,
+            "target_weight": 0.0,
+            "weight_diff": 0.0,
+            "date_bought": pos.date_bought.strftime("%Y-%m-%d") if pos.date_bought else None,
+            "notes": pos.notes or "",
         })
 
-    return holdings
+        total_value += market_value
+        total_cost += cost_basis_total
+
+    # Calculate weights
+    equal_weight_pct = 100.0 / len(holdings) if holdings else 0.0
+    for h in holdings:
+        h["actual_weight"] = (h["market_value"] / total_value * 100) if total_value > 0 else 0.0
+        h["target_weight"] = equal_weight_pct
+        h["weight_diff"] = h["actual_weight"] - equal_weight_pct
+
+    total_pnl = total_value - total_cost
+    total_pnl_pct = (total_pnl / total_cost * 100) if total_cost > 0 else 0.0
+
+    return {
+        "holdings": holdings,
+        "total_value": total_value,
+        "total_cost": total_cost,
+        "total_pnl": total_pnl,
+        "total_pnl_pct": total_pnl_pct,
+        "equal_weight_pct": equal_weight_pct,
+    }
 
 @app.get("/portfolio/recommendations", response_model=List[RecommendationResponse], tags=["Portfolio"])
 def portfolio_recommendations(db: Session = Depends(get_db)):

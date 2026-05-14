@@ -39,12 +39,31 @@ class _UniverseScreenState extends State<UniverseScreen>
 
   Future<void> _uploadCsv() async {
     final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom, allowedExtensions: ['csv'], withData: true);
+        type: FileType.custom, allowedExtensions: ['csv'], withData: true, withReadStream: true);
     if (result == null || result.files.isEmpty) return;
     final file = result.files.first;
-    if (file.bytes == null) return;
+    
+    // Handle bytes - on web, bytes might be null, so read from stream
+    List<int>? bytes;
+    if (file.bytes != null) {
+      bytes = file.bytes;
+    } else if (file.readStream != null) {
+      // On web, read from stream
+      final stream = file.readStream!;
+      final byteList = <int>[];
+      await for (final chunk in stream) {
+        byteList.addAll(chunk);
+      }
+      bytes = byteList;
+    }
+    
+    if (bytes == null || bytes.isEmpty) {
+      _snack('Failed to read file', AppConfig.sell);
+      return;
+    }
+    
     try {
-      await _api.uploadPoolCsv(file.bytes!, file.name);
+      await _api.uploadPoolCsv(bytes, file.name);
       _snack('CSV uploaded ✓', AppConfig.buy);
     } catch (e) { _snack('Upload failed: $e', AppConfig.sell); }
   }
