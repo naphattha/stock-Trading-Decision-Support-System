@@ -392,14 +392,18 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
     total_cost = 0.0
 
     for pos in positions:
-        latest = (
-            db.query(Signal)
-            .filter(Signal.ticker == pos.ticker)
-            .order_by(Signal.timestamp.desc())
-            .first()
-        )
-
-        current_price = float(latest.price) if latest and latest.price else 0
+        # Fetch real-time current price instead of using stale signal data
+        current_price = get_current_price(pos.ticker)
+        if current_price is None:
+            # Fallback to latest signal price if real-time fetch fails
+            latest = (
+                db.query(Signal)
+                .filter(Signal.ticker == pos.ticker)
+                .order_by(Signal.timestamp.desc())
+                .first()
+            )
+            current_price = float(latest.price) if latest and latest.price else 0
+        
         shares = float(pos.shares)
         cost_basis_per_share = float(pos.cost_basis_per_share)
 
@@ -409,6 +413,7 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
         pnl_pct = (unrealized_pnl / cost_basis_total * 100) if cost_basis_total > 0 else 0
 
         holdings.append({
+            "id": pos.id,
             "ticker": pos.ticker,
             "shares": shares,
             "cost_basis_per_share": cost_basis_per_share,

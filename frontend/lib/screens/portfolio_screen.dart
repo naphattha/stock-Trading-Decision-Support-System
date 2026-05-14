@@ -53,11 +53,31 @@ class _PortfolioScreenState extends State<PortfolioScreen>
             try { await _api.addPosition(t,s,p,date:dCtrl.text); await _load(); }
             catch(e){ _snack('$e',AppConfig.sell); }
           },
-          child:const Text('Add',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w700)),
+          child:Text('Add',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w700)),
         ),
       ],
     ));
   }
+
+  Future<void> _deletePosition(HoldingItem item) async {
+    try {
+      await _api.deletePosition(item.id);
+      await _load();
+      _snack('Position deleted', AppConfig.buy);
+    } catch(e) { _snack('Delete failed: $e', AppConfig.sell); }
+  }
+
+  Future<void> _remove(String ticker) async {
+    try { await _api.removeFromUniverse(ticker); await _loadUniverse(); }
+    catch(e) { _snack('$e', AppConfig.sell); }
+  }
+
+  void _snack(String msg, Color color) {
+    if(!mounted)return; 
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(msg),backgroundColor:color));
+  }
+
+  Widget _f(TextEditingController c,String h,TextInputType k)=>TextField(controller:c,keyboardType:k,style:const TextStyle(color:AppConfig.textPrimary),decoration:InputDecoration(hintText:h,hintStyle:const TextStyle(color:AppConfig.textSecondary),filled:true,fillColor:AppConfig.bgDeep,contentPadding:const EdgeInsets.symmetric(horizontal:12,vertical:10),border:OutlineInputBorder(borderRadius:BorderRadius.circular(8),borderSide:const BorderSide(color:AppConfig.border)),enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(8),borderSide:const BorderSide(color:AppConfig.border))));
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +123,7 @@ class _PortfolioScreenState extends State<PortfolioScreen>
       padding:const EdgeInsets.all(16),
       itemCount:snap.holdings.length,
       separatorBuilder:(_,__)=>const SizedBox(height:10),
-      itemBuilder:(_,i)=>_HoldingCard(item:snap.holdings[i],equalWeight:snap.equalWeightPct,onDelete:_load),
+      itemBuilder:(_,i)=>_HoldingCard(item:snap.holdings[i],equalWeight:snap.equalWeightPct,onDelete:()=>_deletePosition(snap.holdings[i])),
     );
   }
 
