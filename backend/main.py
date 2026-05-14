@@ -23,7 +23,7 @@ from database import (
     Stock, Watchlist, Signal, Alert, FundamentalData,
     UniversePool, Universe, Checklist, Position,
 )
-from data_fetcher import fetch_stock_data, fetch_stock_info
+from data_fetcher import fetch_stock_data, fetch_stock_info, get_current_price
 from discord_alert import send_discord_alert
 from fundamental_filter import fetch_fundamentals
 from market_regime import analyze_regime
