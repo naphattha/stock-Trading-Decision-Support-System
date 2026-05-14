@@ -52,10 +52,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Stock Trading DSS", version="3.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://stock-trading-decision-support-syst.vercel.app",
-        "http://localhost:5000",  # local dev
-    ],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

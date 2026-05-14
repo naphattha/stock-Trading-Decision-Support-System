@@ -22,7 +22,10 @@ SIGNAL_REFRESH_INTERVAL_MINUTES: int = int(
 
 # ── Data ───────────────────────────────────────────────────────────────────────
 DATA_PERIOD: str = "6mo"
-CORS_ORIGINS: list[str] = ["*"]
+CORS_ORIGINS: list[str] = [
+    "https://stock-trading-decision-support-syst.vercel.app",
+    "http://localhost:5000",  # local dev
+]
 
 # ── Universe scanner ───────────────────────────────────────────────────────────
 UNIVERSE_MIN_SCORE: int = 3   # criteria out of 5 needed to enter universe
