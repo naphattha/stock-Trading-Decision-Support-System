@@ -391,7 +391,7 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
 
     for pos in positions:
         # Fetch real-time current price instead of using stale signal data
-        current_price = get_current_price(pos.ticker)
+        current_price, is_stale, price_updated_at = get_current_price(pos.ticker)
         if current_price is None:
             # Fallback to latest signal price if real-time fetch fails
             latest = (
@@ -401,7 +401,9 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
                 .first()
             )
             current_price = float(latest.price) if latest and latest.price else 0
-        
+            is_stale = True
+            price_updated_at = latest.timestamp if latest else None
+
         shares = float(pos.shares)
         cost_basis_per_share = float(pos.cost_basis_per_share)
 
@@ -417,6 +419,8 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
             "cost_basis_per_share": cost_basis_per_share,
             "current_price": current_price,
             "market_value": market_value,
+            "price_stale": is_stale,
+            "price_updated_at": price_updated_at.isoformat() if price_updated_at else None,
             "cost_basis_total": cost_basis_total,
             "unrealized_pnl": unrealized_pnl,
             "pnl_pct": pnl_pct,

@@ -218,9 +218,30 @@ class _HoldingCard extends StatelessWidget {
           Text('${item.shares.toStringAsFixed(0)} sh',style:const TextStyle(color:AppConfig.textSecondary,fontSize:12)),
           if (item.dateBought!=null)...[const SizedBox(width:6),Text('· ${item.dateBought}',style:const TextStyle(color:AppConfig.textSecondary,fontSize:11))],
           const Spacer(),
+          if (item.priceStale)...[
+            const Icon(Icons.warning_amber_rounded,color:AppConfig.sell,size:14),
+            const SizedBox(width:4),
+          ],
           GestureDetector(onTap:onDelete,child:const Icon(Icons.delete_outline,color:AppConfig.sell,size:18)),
         ]),
         const SizedBox(height:10),
+
+        // Cache warning
+        if (item.priceStale)
+          Container(
+            padding:const EdgeInsets.symmetric(horizontal:8,vertical:4),
+            decoration:BoxDecoration(color:AppConfig.sell.withOpacity(0.1),borderRadius:BorderRadius.circular(4)),
+            child:Row(mainAxisSize:MainAxisSize.min,children:[
+              const Icon(Icons.info_outline,color:AppConfig.sell,size:12),
+              const SizedBox(width:4),
+              Text('Showing last available cached data',style:const TextStyle(color:AppConfig.sell,fontSize:10)),
+              if (item.priceUpdatedAt!=null)...[
+                const SizedBox(width:8),
+                Text('· Updated: ${item.priceUpdatedAt}',style:const TextStyle(color:AppConfig.textSecondary,fontSize:10)),
+              ],
+            ]),
+          ),
+        if (item.priceStale) const SizedBox(height:8),
 
         // Stats — wrap on mobile
         narrow

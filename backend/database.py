@@ -151,6 +151,17 @@ class Position(Base):
     added_at             = Column(DateTime, default=datetime.utcnow)
 
 
+class StockCache(Base):
+    """Persistent cache for stock data to fallback on API failures."""
+    __tablename__ = "stock_cache"
+    id          = Column(Integer, primary_key=True)
+    ticker      = Column(String, unique=True, index=True, nullable=False)
+    price       = Column(Float, nullable=True)
+    signals     = Column(JSON, nullable=True)
+    indicators  = Column(JSON, nullable=True)
+    updated_at  = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def create_tables() -> None:
