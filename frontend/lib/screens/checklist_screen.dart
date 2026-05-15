@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../config/app_config.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
-import '../widgets/signal_badge.dart';
 
 class ChecklistScreen extends StatefulWidget {
   const ChecklistScreen({super.key});
@@ -166,10 +165,10 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppConfig.checklist))
           : _items.isEmpty
-              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.playlist_add_check, color: AppConfig.textSecondary, size: 48),
-                  const SizedBox(height: 12),
-                  const Text('No items in checklist yet.',
+              ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.playlist_add_check, color: AppConfig.textSecondary, size: 48),
+                  SizedBox(height: 12),
+                  Text('No items in checklist yet.',
                       style: TextStyle(color: AppConfig.textSecondary)),
                 ]))
               : ListView.separated(
@@ -232,7 +231,7 @@ class _ChecklistCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: statusColor.withOpacity(0.06),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            border: Border(bottom: BorderSide(color: AppConfig.border)),
+            border: const Border(bottom: BorderSide(color: AppConfig.border)),
           ),
           child: Row(children: [
             Text(item.ticker, style: const TextStyle(color: AppConfig.textPrimary, fontWeight: FontWeight.w800, fontSize: 15)),

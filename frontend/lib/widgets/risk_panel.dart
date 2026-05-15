@@ -196,16 +196,16 @@ class _RiskPanelState extends State<RiskPanel> {
         ]),
       );
 
-  Widget _tableHeader() => Row(children: [
-        const Expanded(flex: 3, child: Text('Method',
+  Widget _tableHeader() => const Row(children: [
+        Expanded(flex: 3, child: Text('Method',
             style: TextStyle(color: AppConfig.textSecondary, fontSize: 11))),
-        const Expanded(flex: 2, child: Text('Shares',
+        Expanded(flex: 2, child: Text('Shares',
             style: TextStyle(color: AppConfig.textSecondary, fontSize: 11),
             textAlign: TextAlign.right)),
-        const Expanded(flex: 2, child: Text('Value',
+        Expanded(flex: 2, child: Text('Value',
             style: TextStyle(color: AppConfig.textSecondary, fontSize: 11),
             textAlign: TextAlign.right)),
-        const Expanded(flex: 2, child: Text('Note',
+        Expanded(flex: 2, child: Text('Note',
             style: TextStyle(color: AppConfig.textSecondary, fontSize: 11),
             textAlign: TextAlign.right)),
       ]);

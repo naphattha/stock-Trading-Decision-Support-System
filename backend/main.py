@@ -383,6 +383,7 @@ def delete_checklist(id: int, db: Session = Depends(get_db)):
 @app.get("/portfolio/holdings")
 def get_portfolio_holdings(db: Session = Depends(get_db)):
     positions = db.query(Position).all()
+    print(f"[DEBUG] Total positions in DB: {len(positions)}")
 
     holdings = []
     total_value = 0.0
@@ -439,6 +440,7 @@ def get_portfolio_holdings(db: Session = Depends(get_db)):
     total_pnl = total_value - total_cost
     total_pnl_pct = (total_pnl / total_cost * 100) if total_cost > 0 else 0.0
 
+    print(f"[DEBUG] Returning {len(holdings)} holdings to frontend")
     return {
         "holdings": holdings,
         "total_value": total_value,
@@ -469,9 +471,15 @@ def add_position(item: PositionCreate, db: Session = Depends(get_db)):
 
 @app.delete("/portfolio/positions/{id}", tags=["Portfolio"])
 def delete_position(id: int, db: Session = Depends(get_db)):
+    print(f"[DEBUG] Delete request for position ID: {id}")
     pos = db.query(Position).filter(Position.id == id).first()
-    if not pos: raise HTTPException(404)
-    db.delete(pos); db.commit(); cache.invalidate_portfolio(); return {"deleted": id}
+    if not pos:
+        print(f"[DEBUG] Position not found: {id}")
+        raise HTTPException(404)
+    print(f"[DEBUG] Deleting position: {pos.ticker}")
+    db.delete(pos); db.commit(); cache.invalidate_portfolio()
+    print(f"[DEBUG] Position deleted successfully")
+    return {"deleted": id}
 
 @app.get("/portfolio/summary", response_model=PortfolioSummary, tags=["Portfolio"])
 def portfolio_summary(db: Session = Depends(get_db)):

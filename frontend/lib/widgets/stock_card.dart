@@ -39,7 +39,7 @@ class StockCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color:        color.withOpacity(0.08),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                border:       Border(bottom: BorderSide(color: AppConfig.border)),
+                border:       const Border(bottom: BorderSide(color: AppConfig.border)),
               ),
               child: Row(
                 children: [
@@ -138,8 +138,8 @@ class StockCard extends StatelessWidget {
                         ],
 
                         // Mini indicator row
-                        _MiniRow('RSI',   sig.rsiSignal,      '${sig.rsiValue?.toStringAsFixed(1) ?? '—'}'),
-                        _MiniRow('MACD',  sig.macdSignal,     '${sig.macdValue?.toStringAsFixed(4) ?? '—'}'),
+                        _MiniRow('RSI',   sig.rsiSignal,      sig.rsiValue?.toStringAsFixed(1) ?? '—'),
+                        _MiniRow('MACD',  sig.macdSignal,     sig.macdValue?.toStringAsFixed(4) ?? '—'),
                         _MiniRow('MA',    sig.maSignal,       'SMA20 ${sig.sma20?.toStringAsFixed(2) ?? '—'}'),
                         _MiniRow('BB',    sig.bbSignal,       '${sig.bbLower?.toStringAsFixed(2) ?? '—'} – ${sig.bbUpper?.toStringAsFixed(2) ?? '—'}'),
                         _MiniRow('Mom',   sig.momentumSignal, '${sig.momentumValue?.toStringAsFixed(2) ?? '—'}%'),

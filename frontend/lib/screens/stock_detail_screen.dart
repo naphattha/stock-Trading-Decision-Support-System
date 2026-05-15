@@ -5,7 +5,6 @@ import '../config/app_config.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
 import '../widgets/signal_badge.dart';
-import '../widgets/alert_list.dart';
 import '../widgets/fundamental_panel.dart';
 import '../widgets/risk_panel.dart';
 import '../widgets/regime_widget.dart';
@@ -370,7 +369,7 @@ class _StockDetailScreenState extends State<StockDetailScreen>
               show: true,
               horizontalInterval: (maxY - minY) / 5,
               getDrawingHorizontalLine: (_) =>
-                  FlLine(color: AppConfig.border, strokeWidth: 0.5),
+                  const FlLine(color: AppConfig.border, strokeWidth: 0.5),
               drawVerticalLine: false,
             ),
             borderData: FlBorderData(show: false),
@@ -393,13 +392,13 @@ class _StockDetailScreenState extends State<StockDetailScreen>
                               color: AppConfig.textSecondary, fontSize: 9)));
                 },
               )),
-              topTitles:   AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             ),
             lineBarsData: [LineChartBarData(
               spots: spots, isCurved: true, curveSmoothness: 0.3,
               color: lc, barWidth: 2,
-              dotData: FlDotData(show: false),
+              dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                   show: true, color: lc.withOpacity(0.07)),
             )],
@@ -424,10 +423,11 @@ class _StockDetailScreenState extends State<StockDetailScreen>
   // ── Tab 2: Fundamental ────────────────────────────────────────────────────────
 
   Widget _buildFundamental() {
-    if (_loadingFund)
+    if (_loadingFund) {
       return const Center(
           child: CircularProgressIndicator(color: AppConfig.accent));
-    if (_fundamental == null)
+    }
+    if (_fundamental == null) {
       return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.analytics_outlined,
             color: AppConfig.textSecondary, size: 40),
@@ -442,6 +442,7 @@ class _StockDetailScreenState extends State<StockDetailScreen>
               style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700)),
         ),
       ]));
+    }
 
     return FundamentalPanel(
       data: _fundamental!,
@@ -452,10 +453,11 @@ class _StockDetailScreenState extends State<StockDetailScreen>
   // ── Tab 3: Regime & MTF ───────────────────────────────────────────────────────
 
   Widget _buildRegime() {
-    if (_loadingRegime)
+    if (_loadingRegime) {
       return const Center(
           child: CircularProgressIndicator(color: AppConfig.accent));
-    if (_regime == null)
+    }
+    if (_regime == null) {
       return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.trending_up, color: AppConfig.textSecondary, size: 40),
         const SizedBox(height: 12),
@@ -469,6 +471,7 @@ class _StockDetailScreenState extends State<StockDetailScreen>
               style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700)),
         ),
       ]));
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),

@@ -23,7 +23,7 @@ class TradingDSSApp extends StatelessWidget {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppConfig.bgDeep,
         cardColor: AppConfig.bgCard,
-        colorScheme: ColorScheme.dark(primary: AppConfig.accent, secondary: AppConfig.accent, surface: AppConfig.bgCard),
+        colorScheme: const ColorScheme.dark(primary: AppConfig.accent, secondary: AppConfig.accent, surface: AppConfig.bgCard),
         textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
         useMaterial3: true,
         navigationBarTheme: NavigationBarThemeData(

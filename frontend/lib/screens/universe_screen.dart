@@ -3,7 +3,6 @@ import 'package:file_picker/file_picker.dart';
 import '../config/app_config.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
-import '../widgets/signal_badge.dart';
 
 class UniverseScreen extends StatefulWidget {
   const UniverseScreen({super.key});

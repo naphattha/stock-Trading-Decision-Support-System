@@ -24,9 +24,15 @@ class _PortfolioScreenState extends State<PortfolioScreen>
   Future<void> _load() async {
     setState(()=>_loading=true);
     try {
-      final r = await Future.wait([_api.fetchHoldings(),_api.fetchRecommendations()]);
-      setState(() { _snapshot=r[0] as PortfolioSnapshot; _recs=r[1] as List<RecommendationItem>; });
-    } catch(e){ _snack('$e',AppConfig.sell); }
+      print('Fetching holdings...');
+      _snapshot=await _api.fetchHoldings();
+      print('Holdings fetched: ${_snapshot?.holdings.length ?? 0} items');
+      _recs=await _api.fetchRecommendations();
+    }
+    catch(e) {
+      print('Error loading holdings: $e');
+      _snack('$e',AppConfig.sell);
+    }
     finally   { setState(()=>_loading=false); }
   }
 
@@ -53,7 +59,7 @@ class _PortfolioScreenState extends State<PortfolioScreen>
             try { await _api.addPosition(t,s,p,date:dCtrl.text); await _load(); }
             catch(e){ _snack('$e',AppConfig.sell); }
           },
-          child:Text('Add',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w700)),
+          child:const Text('Add',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w700)),
         ),
       ],
     ));
@@ -61,10 +67,15 @@ class _PortfolioScreenState extends State<PortfolioScreen>
 
   Future<void> _deletePosition(HoldingItem item) async {
     try {
+      print('Deleting position: ID=${item.id}, Ticker=${item.ticker}');
       await _api.deletePosition(item.id);
+      print('Delete successful, refreshing...');
       await _load();
       _snack('Position deleted', AppConfig.buy);
-    } catch(e) { _snack('Delete failed: $e', AppConfig.sell); }
+    } catch(e) {
+      print('Delete failed: $e');
+      _snack('Delete failed: $e', AppConfig.sell);
+    }
   }
 
   Future<void> _remove(String ticker) async {
@@ -117,8 +128,9 @@ class _PortfolioScreenState extends State<PortfolioScreen>
   }
 
   Widget _buildHoldings(PortfolioSnapshot? snap) {
-    if (snap==null||snap.holdings.isEmpty)
+    if (snap==null||snap.holdings.isEmpty) {
       return const Center(child:Padding(padding:EdgeInsets.all(32),child:Text('No positions yet.\nTap + to add, or mark a Checklist item as Bought.',textAlign:TextAlign.center,style:TextStyle(color:AppConfig.textSecondary,height:1.6))));
+    }
     return ListView.separated(
       padding:const EdgeInsets.all(16),
       itemCount:snap.holdings.length,
@@ -128,8 +140,9 @@ class _PortfolioScreenState extends State<PortfolioScreen>
   }
 
   Widget _buildRecs() {
-    if (_recs.isEmpty)
+    if (_recs.isEmpty) {
       return const Center(child:Padding(padding:EdgeInsets.all(32),child:Text('No recommendations yet.\nItems appear when Checklist price\nis triggered AND Signal = BUY.',textAlign:TextAlign.center,style:TextStyle(color:AppConfig.textSecondary,height:1.6))));
+    }
     return ListView.separated(
       padding:const EdgeInsets.all(16),
       itemCount:_recs.length,
@@ -236,7 +249,7 @@ class _HoldingCard extends StatelessWidget {
 
         // Weight bar
         Row(children:[
-          Text('Weight ',style:const TextStyle(color:AppConfig.textSecondary,fontSize:11)),
+          const Text('Weight ',style:TextStyle(color:AppConfig.textSecondary,fontSize:11)),
           Text('${item.actualWeight.toStringAsFixed(1)}%',style:const TextStyle(color:AppConfig.textPrimary,fontSize:11,fontWeight:FontWeight.w700)),
           Text(' / target ${equalWeight.toStringAsFixed(1)}%',style:const TextStyle(color:AppConfig.textSecondary,fontSize:11)),
           const SizedBox(width:6),

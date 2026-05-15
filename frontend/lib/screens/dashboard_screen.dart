@@ -146,7 +146,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _SectionHeader(title:'Watchlist',count:_watchlist.length,icon:Icons.bar_chart),
           const SizedBox(height:12),
           _watchlist.isEmpty
-              ? _EmptyState(icon:Icons.add_chart,message:'No stocks yet.\nTap + to add your first ticker.')
+              ? const _EmptyState(icon:Icons.add_chart,message:'No stocks yet.\nTap + to add your first ticker.')
               : GridView.builder(
                   shrinkWrap: true,
                   physics:    const NeverScrollableScrollPhysics(),
