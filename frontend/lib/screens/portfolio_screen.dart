@@ -78,13 +78,8 @@ class _PortfolioScreenState extends State<PortfolioScreen>
     }
   }
 
-  Future<void> _remove(String ticker) async {
-    try { await _api.removeFromUniverse(ticker); await _loadUniverse(); }
-    catch(e) { _snack('$e', AppConfig.sell); }
-  }
-
   void _snack(String msg, Color color) {
-    if(!mounted)return; 
+    if(!mounted)return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(msg),backgroundColor:color));
   }
 
@@ -150,9 +145,6 @@ class _PortfolioScreenState extends State<PortfolioScreen>
       itemBuilder:(_,i)=>_RecommendationCard(item:_recs[i]),
     );
   }
-
-  void _snack(String m,Color c){ if(!mounted)return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(m),backgroundColor:c)); }
-  Widget _f(TextEditingController c,String h,TextInputType k)=>TextField(controller:c,keyboardType:k,style:const TextStyle(color:AppConfig.textPrimary),decoration:InputDecoration(hintText:h,hintStyle:const TextStyle(color:AppConfig.textSecondary),filled:true,fillColor:AppConfig.bgDeep,contentPadding:const EdgeInsets.symmetric(horizontal:12,vertical:10),border:OutlineInputBorder(borderRadius:BorderRadius.circular(8),borderSide:const BorderSide(color:AppConfig.border)),enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(8),borderSide:const BorderSide(color:AppConfig.border))));
 }
 
 // ── Summary Bar — 2×2 on mobile ───────────────────────────────────────────────
