@@ -268,6 +268,16 @@ def remove_pool(ticker: str, db: Session = Depends(get_db)):
     db.delete(row); db.commit()
     return {"removed": ticker.upper()}
 
+@app.post("/universe/pool/add", tags=["Universe"])
+def add_pool(ticker: str = Query(..., description="Ticker symbol"), db: Session = Depends(get_db)):
+    ticker = ticker.upper()
+    if db.query(UniversePool).filter(UniversePool.ticker == ticker).first():
+        raise HTTPException(400, f"{ticker} already in pool.")
+    db.add(UniversePool(ticker=ticker, source="manual"))
+    db.commit()
+    cache.invalidate_scan()
+    return {"added": ticker, "source": "manual"}
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # UNIVERSE

@@ -57,6 +57,15 @@ class ApiService {
     if (resp.statusCode >= 400) throw ApiException('Upload failed', resp.statusCode);
   }
   Future<String> downloadPoolCsv() async { final r=await http.get(Uri.parse('$_base/universe/pool/download')); return r.body; }
+  Future<int> getPoolCount() async {
+    try {
+      final d = await _get('/universe/pool') as List;
+      return d.length;
+    } catch (e) {
+      return 0;
+    }
+  }
+  Future<void> addToPool(String ticker) async => _post('/universe/pool/add?ticker=$ticker');
 
   // ── Universe ───────────────────────────────────────────────────────────────
   Future<List<UniverseItem>> fetchUniverse() async { final d=await _get('/universe')as List; return d.map((e)=>UniverseItem.fromJson(e)).toList(); }

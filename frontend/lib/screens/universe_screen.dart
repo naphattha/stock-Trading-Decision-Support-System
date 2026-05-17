@@ -18,12 +18,14 @@ class _UniverseScreenState extends State<UniverseScreen>
   List<ScanResult>   _scanResults = [];
   bool _loading = false, _scanning = false;
   String? _error;
+  int _poolCount = 0;
 
   @override
   void initState() {
     super.initState();
     _tabs = TabController(length: 2, vsync: this);
     _loadUniverse();
+    _loadPoolCount();
   }
   @override void dispose() { _tabs.dispose(); super.dispose(); }
 
@@ -34,6 +36,15 @@ class _UniverseScreenState extends State<UniverseScreen>
       setState(() => _universe = u);
     } catch (e) { setState(() => _error = e.toString()); }
     finally    { setState(() => _loading = false); }
+  }
+
+  Future<void> _loadPoolCount() async {
+    try {
+      final count = await _api.getPoolCount();
+      setState(() => _poolCount = count);
+    } catch (e) {
+      setState(() => _poolCount = 0);
+    }
   }
 
   Future<void> _uploadCsv() async {
@@ -64,10 +75,15 @@ class _UniverseScreenState extends State<UniverseScreen>
     try {
       await _api.uploadPoolCsv(bytes, file.name);
       _snack('CSV uploaded ✓', AppConfig.buy);
+      await _loadPoolCount();
     } catch (e) { _snack('Upload failed: $e', AppConfig.sell); }
   }
 
   Future<void> _runScan() async {
+    if (_poolCount == 0) {
+      _snack('Pool is empty. Upload a CSV first.', AppConfig.sell);
+      return;
+    }
     setState(() { _scanning = true; _scanResults = []; });
     try {
       final results = await _api.runScan();
@@ -102,6 +118,37 @@ class _UniverseScreenState extends State<UniverseScreen>
     ));
   }
 
+  Future<void> _addToPool() async {
+    final ctrl = TextEditingController();
+    await showDialog(context: context, builder: (_) => AlertDialog(
+      backgroundColor: AppConfig.bgCard,
+      title: const Text('Add to Pool', style: TextStyle(color: AppConfig.textPrimary)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        _dlgField(ctrl, 'Ticker (e.g. AAPL)'),
+        const SizedBox(height: 8),
+        Text('This adds to the scan pool, not the final universe.', style: TextStyle(color: AppConfig.textSecondary, fontSize: 12)),
+      ]),
+      actions: [
+        TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: AppConfig.accent),
+          onPressed: () async {
+            final t = ctrl.text.trim().toUpperCase();
+            if (t.isEmpty) return;
+            Navigator.pop(context);
+            try {
+              await _api.addToPool(t);
+              await _loadPoolCount();
+              _snack('$t added to pool ✓', AppConfig.buy);
+            }
+            catch(e) { _snack('$e', AppConfig.sell); }
+          },
+          child: const Text('Add to Pool', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        ),
+      ],
+    ));
+  }
+
   Future<void> _remove(String ticker) async {
     try { await _api.removeFromUniverse(ticker); await _loadUniverse(); }
     catch(e) { _snack('$e', AppConfig.sell); }
@@ -129,11 +176,17 @@ class _UniverseScreenState extends State<UniverseScreen>
         actions: [
           // Upload CSV
           IconButton(icon: const Icon(Icons.upload_file, color: AppConfig.accent), tooltip: 'Upload CSV pool', onPressed: _uploadCsv),
+          // Add to Pool
+          IconButton(icon: const Icon(Icons.playlist_add, color: AppConfig.accent), tooltip: 'Add ticker to pool', onPressed: _addToPool),
           // Run Scan
           _scanning
               ? const Padding(padding: EdgeInsets.all(12), child: SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:AppConfig.universe)))
-              : IconButton(icon: const Icon(Icons.radar, color: AppConfig.universe), tooltip: 'Run auto scan', onPressed: _runScan),
-          IconButton(icon: const Icon(Icons.add, color: AppConfig.universe), tooltip: 'Add manually', onPressed: _addManual),
+              : IconButton(
+                  icon: const Icon(Icons.radar, color: AppConfig.universe),
+                  tooltip: _poolCount == 0 ? 'Pool empty - add tickers first' : 'Run auto scan',
+                  onPressed: _poolCount == 0 ? null : _runScan,
+                ),
+          IconButton(icon: const Icon(Icons.add, color: AppConfig.universe), tooltip: 'Add to Universe', onPressed: _addManual),
         ],
         bottom: TabBar(
           controller: _tabs, indicatorColor: AppConfig.universe,
